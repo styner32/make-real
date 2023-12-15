@@ -1,19 +1,23 @@
-import { sql } from '@vercel/postgres'
-import { notFound } from 'next/navigation'
 import { LinkComponent } from '../../components/LinkComponent'
+import { notFound } from 'next/navigation'
+import prisma from '../../lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-export default async function LinkPage(
-	{ params, searchParams }: { params: { linkId: string }; searchParams: { preview?: string } }
-) {
+export default async function LinkPage({
+	params,
+	searchParams,
+}: {
+	params: { linkId: string }
+	searchParams: { preview?: string }
+}) {
 	const { linkId } = params
 	const isPreview = !!searchParams.preview
 
-	const result = await sql`SELECT html FROM links WHERE shape_id = ${linkId}`
-	if (result.rows.length !== 1) notFound()
+	const result = await prisma.link.findFirst({ where: { shapeId: linkId } })
+	if (!result) notFound()
 
-	let html: string = result.rows[0].html
+	let html: string = result.html
 
 	const SCRIPT_TO_INJECT_FOR_PREVIEW = `
     // send the screenshot to the parent window
@@ -37,7 +41,7 @@ export default async function LinkPage(
 			? html.replace(
 					'</body>',
 					`<script src="https://unpkg.com/html2canvas"></script><script>${SCRIPT_TO_INJECT_FOR_PREVIEW}</script></body>`
-			  )
+				)
 			: html + `<script>${SCRIPT_TO_INJECT_FOR_PREVIEW}</script>`
 	}
 
