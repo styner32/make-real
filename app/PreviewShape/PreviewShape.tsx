@@ -21,6 +21,7 @@ export type PreviewShape = TLBaseShape<
 	'preview',
 	{
 		html: string
+		src: string
 		source: string
 		w: number
 		h: number
@@ -36,6 +37,7 @@ export class PreviewShapeUtil extends BaseBoxShapeUtil<PreviewShape> {
 	getDefaultProps(): PreviewShape['props'] {
 		return {
 			html: '',
+			src: '',
 			source: '',
 			w: (960 * 2) / 3,
 			h: (540 * 2) / 3,
@@ -64,6 +66,8 @@ export class PreviewShapeUtil extends BaseBoxShapeUtil<PreviewShape> {
 
 		const { html, linkUploadVersion, uploadedShapeId } = shape.props
 
+		const isLoading = linkUploadVersion === undefined || uploadedShapeId !== shape.id
+
 		// upload the html if we haven't already:
 		useEffect(() => {
 			let isCancelled = false
@@ -82,12 +86,11 @@ export class PreviewShapeUtil extends BaseBoxShapeUtil<PreviewShape> {
 					})
 				})()
 			}
+
 			return () => {
 				isCancelled = true
 			}
 		}, [shape.id, html, linkUploadVersion, uploadedShapeId])
-
-		const isLoading = linkUploadVersion === undefined || uploadedShapeId !== shape.id
 
 		const uploadUrl = [PROTOCOL, LINK_HOST, '/', shape.id.replace(/^shape:/, '')].join('')
 
@@ -113,7 +116,7 @@ export class PreviewShapeUtil extends BaseBoxShapeUtil<PreviewShape> {
 					<>
 						<iframe
 							id={`iframe-1-${shape.id}`}
-							src={`${uploadUrl}?preview=1&v=${linkUploadVersion}`}
+							src={shape.props.src || `${uploadUrl}?preview=1&v=${linkUploadVersion}`}
 							width={toDomPrecision(shape.props.w)}
 							height={toDomPrecision(shape.props.h)}
 							draggable={false}

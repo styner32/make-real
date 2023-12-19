@@ -1,4 +1,5 @@
 import { Editor, createShapeId, getSvgAsImage } from '@tldraw/tldraw'
+
 import { track } from '@vercel/analytics/react'
 import { PreviewShape } from '../PreviewShape/PreviewShape'
 import { getHtmlFromOpenAI } from './getHtmlFromOpenAI'
@@ -53,13 +54,15 @@ export async function makeReal(editor: Editor, apiKey: string) {
 	const textFromShapes = getSelectionAsText(editor)
 
 	try {
-		const json = await getHtmlFromOpenAI({
+		const options = {
 			image: dataUrl,
 			apiKey,
 			text: textFromShapes,
 			previousPreviews,
 			theme: editor.user.getUserPreferences().isDarkMode ? 'dark' : 'light',
-		})
+		}
+
+		const json = await getHtmlFromOpenAI(options)
 
 		if (json.error) {
 			throw Error(`${json.error.message?.slice(0, 100)}...`)
